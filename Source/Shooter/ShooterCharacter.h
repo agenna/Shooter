@@ -19,6 +19,20 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// called for forward/backward movement
+	void MoveForward(float Value);
+
+	// called for right/left movement
+	void MoveRight(float Value);
+
+	//called via input to turn at a given rate 
+	//@param Rate this is a normalized rate, i.e. means 100% of desired turn rate
+	void TurnRate(float Rate);
+
+	//called via input to turn at a given rate 
+	//@param Rate this is a normalized rate, i.e. means 100% of desired turn rate
+	void LookUpRate(float Rate);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -34,6 +48,14 @@ private:
 	/* Camera that follows the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	/* Base turn rate, in deg/sec. Other scaling may affect final turn rate */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float BaseTurnRate;
+
+	/* Base turn rate, in deg/sec. Other scaling may affect final turn rate*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float BaseLookUpRate;
 
 public:
 	/* returns the camera boom sub object*/

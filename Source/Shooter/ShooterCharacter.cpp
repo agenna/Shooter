@@ -7,7 +7,9 @@
 
 
 // Sets default values
-AShooterCharacter::AShooterCharacter()
+AShooterCharacter::AShooterCharacter() :
+	BaseTurnRate(45.f),
+	BaseLookUpRate(45.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -36,6 +38,44 @@ void AShooterCharacter::BeginPlay()
 	
 }
 
+void AShooterCharacter::MoveForward(float Value)
+{
+	if ((Controller != nullptr) && (Value != 0)) {
+		//find out which way is forward
+		const FRotator Rotation{ Controller->GetControlRotation() };
+		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
+
+		FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::X) };
+		AddMovementInput(Direction, Value);
+	}
+}
+
+void AShooterCharacter::MoveRight(float Value)
+{
+	if ((Controller != nullptr) && (Value != 0)) {
+		//find out which way is right
+		const FRotator Rotation{ Controller->GetControlRotation() };
+		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
+
+		FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::Y) };
+		AddMovementInput(Direction, Value);
+	}
+}
+
+void AShooterCharacter::TurnRate(float Rate)
+{
+	// calculate delta for this frame from the rate information
+	// deg/sec  * sec/frame = deg/frame
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AShooterCharacter::LookUpRate(float Rate)
+{
+	// calculate delta for this frame from the rate information
+	// deg/sec  * sec/frame = deg/frame
+	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -48,5 +88,16 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &AShooterCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AShooterCharacter::MoveRight);
+
+	PlayerInputComponent->BindAxis("TurnRate", this, &AShooterCharacter::TurnRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &AShooterCharacter::LookUpRate);
+
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("LookUp", IE_Released, this, &ACharacter::StopJumping);
 }
 
