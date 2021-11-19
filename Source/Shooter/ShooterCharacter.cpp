@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 
 // Sets default values
@@ -38,7 +40,7 @@ AShooterCharacter::AShooterCharacter() :
 
 	//configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input ...
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 540.f);// ... at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator(540.f, 0.f, 0.f);// ... at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 }
@@ -90,6 +92,9 @@ void AShooterCharacter::LookUpRate(float Rate)
 void AShooterCharacter::FireWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fire Weapon."));
+	if (FireSound) {
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
 }
 
 // Called every frame
