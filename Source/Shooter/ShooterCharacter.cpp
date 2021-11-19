@@ -4,6 +4,7 @@
 #include "ShooterCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values
@@ -29,13 +30,23 @@ AShooterCharacter::AShooterCharacter() :
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 		// camera does not rotate the arm based on the controller
 	FollowCamera->bUsePawnControlRotation = false;
+
+	//don't rotate when the controller rotates. Let the controller only affect the camera
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
+	//configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input ...
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 540.f);// ... at this rotation rate
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.2f;
 }
 
 // Called when the game starts or when spawned
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -76,6 +87,11 @@ void AShooterCharacter::LookUpRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
+void AShooterCharacter::FireWeapon()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Fire Weapon."));
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -99,5 +115,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("LookUp", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AShooterCharacter::FireWeapon);
+
 }
 

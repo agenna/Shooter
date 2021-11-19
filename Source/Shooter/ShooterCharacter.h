@@ -33,6 +33,9 @@ protected:
 	//@param Rate this is a normalized rate, i.e. means 100% of desired turn rate
 	void LookUpRate(float Rate);
 
+	// function called when fire button is pressed
+	void FireWeapon();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
