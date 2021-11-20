@@ -8,6 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 // Sets default values
@@ -93,17 +95,47 @@ void AShooterCharacter::LookUpRate(float Rate)
 void AShooterCharacter::FireWeapon()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Fire Weapon."));
+
 	if (FireSound) {
 		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
 
+	const USkeletalMeshSocket* BarrelSocket = GetMesh()->GetSocketByName("BarrelSocket");
+	if (BarrelSocket) {
+		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(GetMesh());
 		if (MuzzleFlash) {
-			const USkeletalMeshSocket* BarrelSocket = GetMesh()->GetSocketByName("BarrelSocket");
-			if (BarrelSocket) {
-				const FTransform SocketTranform = BarrelSocket->GetSocketTransform(GetMesh());
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTranform);
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+		}
+
+		FHitResult FireHit;
+		const FVector Start{ SocketTransform.GetLocation() };
+		const FQuat Rotation{ SocketTransform.GetRotation() };
+		const FVector RotationAxis{ Rotation.GetAxisX() };
+		const FVector End{ Start + RotationAxis * 50000.f };
+		FVector BeamEndPoint{ End };
+
+		GetWorld()->LineTraceSingleByChannel(FireHit, Start, End, ECollisionChannel::ECC_Visibility);
+		if (FireHit.bBlockingHit) {
+			//DrawDebugLine(GetWorld(), Start, FireHit.Location, FColor::Red, false, 2.0f);
+			//DrawDebugPoint(GetWorld(), FireHit.Location, 5.0f, FColor::Green, false, 2.0f);
+			
+			BeamEndPoint = FireHit.Location;
+
+			if (ImpactParticles) {
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit.Location);
 			}
 		}
+		if (BeamParticles) {
+			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, FireHit.Location);
+			if (Beam) {
+				Beam->SetVectorParameter(FName("target"), BeamEndPoint);
+			}
+
+		}
+
+
 	}
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && HipFireWeapon) {
 		AnimInstance->Montage_Play(HipFireWeapon);
